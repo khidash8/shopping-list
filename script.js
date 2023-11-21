@@ -3,6 +3,9 @@ const itemForm = document.querySelector("#item-form");
 const itemInput = document.querySelector("#item-input");
 const itemList = document.querySelector("#item-list");
 
+//! Events
+itemForm.addEventListener("submit", addListItems);
+
 //! Functions
 function addListItems(e) {
   e.preventDefault();
@@ -46,6 +49,3 @@ function createIcon(classes) {
   icon.className = classes;
   return icon;
 }
-
-//! Events
-itemForm.addEventListener("submit", addListItems);
