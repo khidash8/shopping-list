@@ -10,16 +10,34 @@ itemForm.addEventListener("submit", addListItems);
 itemList.addEventListener("click", removeItem);
 clearBtn.addEventListener("click", clearAllItems);
 itemFilter.addEventListener("input", filterItems);
+document.addEventListener("DOMContentLoaded", onDOMLoaded);
 
-//! Functions
+//? Functions
+//! 1: Add to list
+//? add items to the list and store in local storage
 function addListItems(e) {
   e.preventDefault();
 
   const newData = itemInput.value;
 
+  //* 1: create list and DOM Elements
+  createDOMElements(newData);
+
+  //* 2: submit to local storage
+  submitToLocalStorage(newData);
+
+  //? clear input field after submitting
+  itemInput.value = "";
+
+  //? reset ui
+  resetUI();
+}
+
+//? create list and DOM Elements
+function createDOMElements(data) {
   //? create list element
   const li = document.createElement("li");
-  li.append(document.createTextNode(newData));
+  li.append(document.createTextNode(data));
 
   //? inside li, we need button element with fontawsom icon
   const button = createButton("remove-item btn-link text-red");
@@ -29,12 +47,6 @@ function addListItems(e) {
 
   //? append li to parent list(ul)
   itemList.appendChild(li);
-
-  //? clear input field after submitting
-  itemInput.value = "";
-
-  //? reset ui
-  resetUI();
 }
 
 //? Create Button and icons
@@ -58,7 +70,8 @@ function createIcon(classes) {
   return icon;
 }
 
-//? create delete funtionality
+//! 2: Remove from list and storage
+//? Remove from DOM
 function removeItem(e) {
   const eventTargetParent = e.target.parentElement;
 
@@ -66,10 +79,24 @@ function removeItem(e) {
     if (confirm("Are you sure want to DELETE?")) {
       eventTargetParent.parentElement.remove();
 
+      //? Remove from storage
+      const itemText = eventTargetParent.parentElement.textContent;
+      removeItemsFromStorage(itemText);
+
       //? reset ui
       resetUI();
     }
   }
+}
+
+//? Remove from storage
+function removeItemsFromStorage(item) {
+  let itemsFromStorage = getFromStorage();
+
+  itemsFromStorage = itemsFromStorage.filter((i) => i != item);
+
+  //? update local storage
+  localStorage.setItem("item", JSON.stringify(itemsFromStorage));
 }
 
 //? Create Clear all functionalty
@@ -80,14 +107,24 @@ function clearAllItems(e) {
   //   itemList.removeChild(itemList.firstElementChild);
   // }
 
+  //? remove items from DOM
   while (itemList.firstChild) {
     itemList.removeChild(itemList.firstChild);
   }
+
+  //? remove items from storage
+  clearAllFromStorage();
 
   //? reset ui
   resetUI();
 }
 
+//? clear all items from Storage
+function clearAllFromStorage() {
+  localStorage.removeItem("item");
+}
+
+//! 3: Filter and update UI
 //? Remove clear btn and filter UI if there is no list items
 function resetUI() {
   //* check there is list items / items length > 0
@@ -99,6 +136,8 @@ function resetUI() {
     clearBtn.style.display = "block";
     itemFilter.style.display = "block";
   }
+
+  // localStorage.clear();
 }
 
 //? Filter items
@@ -132,5 +171,37 @@ function filterItems(e) {
   });
 }
 
+//! 4: Storage
+//? submit to local storage
+function submitToLocalStorage(data) {
+  const itemsFromStorage = getFromStorage();
+
+  //* push new item to the array
+  itemsFromStorage.push(data);
+
+  //* push everything to local storage
+  localStorage.setItem("item", JSON.stringify(itemsFromStorage));
+}
+
+//? Get from local Storage
+function getFromStorage() {
+  let itemsFromStorage;
+
+  //* check if there is already sorage named 'item'
+  if (localStorage.getItem("item") === null) {
+    itemsFromStorage = [];
+  } else {
+    itemsFromStorage = JSON.parse(localStorage.getItem("item"));
+  }
+
+  return itemsFromStorage;
+}
+
 //! Startup functions
 resetUI();
+
+function onDOMLoaded(e) {
+  const itemsFromStorage = getFromStorage();
+  itemsFromStorage.forEach((item) => createDOMElements(item));
+  resetUI();
+}
