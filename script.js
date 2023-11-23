@@ -24,6 +24,11 @@ function addListItems(e) {
 
   const newData = itemInput.value;
 
+  if (newData === "") {
+    alert("Cannot be Blank!!");
+    return;
+  }
+
   /*  check if we're in edit mode
   if so... delete the selected item
   delete its class
@@ -37,6 +42,11 @@ function addListItems(e) {
     selectedItemToEdit.remove();
 
     itemInput.value = "";
+  } else {
+    if (checkDuplicateItems(newData)) {
+      alert("Item already exists");
+      return;
+    }
   }
 
   //* 1: create list and DOM Elements
@@ -54,20 +64,18 @@ function addListItems(e) {
 
 //? create list and DOM Elements
 function createDOMElements(data) {
-  if (itemInput.value) {
-    //? create list element
-    const li = document.createElement("li");
-    li.append(document.createTextNode(data));
+  //? create list element
+  const li = document.createElement("li");
+  li.append(document.createTextNode(data));
 
-    //? inside li, we need button element with fontawsom icon
-    const button = createButton("remove-item btn-link text-red");
+  //? inside li, we need button element with fontawsom icon
+  const button = createButton("remove-item btn-link text-red");
 
-    //? append button to li
-    li.appendChild(button);
+  //? append button to li
+  li.appendChild(button);
 
-    //? append li to parent list(ul)
-    itemList.appendChild(li);
-  }
+  //? append li to parent list(ul)
+  itemList.appendChild(li);
 }
 
 //? Create Button and icons
@@ -247,6 +255,13 @@ function updateItems(e) {
     //? change the input value
     itemInput.value = e.target.textContent;
   }
+}
+
+//! 6: check duplication of items
+function checkDuplicateItems(item) {
+  const itemsFromStorage = getFromStorage();
+
+  return itemsFromStorage.includes(item);
 }
 
 //! Startup functions
