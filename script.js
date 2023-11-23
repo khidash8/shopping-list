@@ -4,13 +4,17 @@ const itemInput = document.querySelector("#item-input");
 const itemList = document.querySelector("#item-list");
 const itemFilter = document.querySelector(".filter");
 const clearBtn = document.querySelector("#clear");
+const formBtn = itemForm.querySelector(".btn");
 
 //! Events
 itemForm.addEventListener("submit", addListItems);
 itemList.addEventListener("click", removeItem);
+itemList.addEventListener("click", updateItems);
 clearBtn.addEventListener("click", clearAllItems);
 itemFilter.addEventListener("input", filterItems);
 document.addEventListener("DOMContentLoaded", onDOMLoaded);
+
+let editMode = false;
 
 //? Functions
 //! 1: Add to list
@@ -19,6 +23,21 @@ function addListItems(e) {
   e.preventDefault();
 
   const newData = itemInput.value;
+
+  /*  check if we're in edit mode
+  if so... delete the selected item
+  delete its class
+  remove it from local storage 
+  */
+  if (editMode) {
+    const selectedItemToEdit = document.querySelector(".item-edit");
+
+    removeItemsFromStorage(selectedItemToEdit.textContent);
+    selectedItemToEdit.classList.remove("item-edit");
+    selectedItemToEdit.remove();
+
+    itemInput.value = "";
+  }
 
   //* 1: create list and DOM Elements
   createDOMElements(newData);
@@ -35,18 +54,20 @@ function addListItems(e) {
 
 //? create list and DOM Elements
 function createDOMElements(data) {
-  //? create list element
-  const li = document.createElement("li");
-  li.append(document.createTextNode(data));
+  if (itemInput.value) {
+    //? create list element
+    const li = document.createElement("li");
+    li.append(document.createTextNode(data));
 
-  //? inside li, we need button element with fontawsom icon
-  const button = createButton("remove-item btn-link text-red");
+    //? inside li, we need button element with fontawsom icon
+    const button = createButton("remove-item btn-link text-red");
 
-  //? append button to li
-  li.appendChild(button);
+    //? append button to li
+    li.appendChild(button);
 
-  //? append li to parent list(ul)
-  itemList.appendChild(li);
+    //? append li to parent list(ul)
+    itemList.appendChild(li);
+  }
 }
 
 //? Create Button and icons
@@ -127,6 +148,10 @@ function clearAllFromStorage() {
 //! 3: Filter and update UI
 //? Remove clear btn and filter UI if there is no list items
 function resetUI() {
+  //* reset everything
+  itemInput.value = "";
+  editMode = false;
+
   //* check there is list items / items length > 0
   const items = itemList.querySelectorAll("li");
   if (items.length === 0) {
@@ -137,7 +162,9 @@ function resetUI() {
     itemFilter.style.display = "block";
   }
 
-  // localStorage.clear();
+  //? change the form button
+  formBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add Item';
+  formBtn.style.backgroundColor = "#333";
 }
 
 //? Filter items
@@ -195,6 +222,31 @@ function getFromStorage() {
   }
 
   return itemsFromStorage;
+}
+
+//! 5: update list items
+function updateItems(e) {
+  //? set edit mode to true (indicating we're in edit mode)
+  editMode = true;
+
+  //? remove editable class from all of the li items
+  itemList
+    .querySelectorAll("li")
+    .forEach((i) => i.classList.remove("item-edit"));
+
+  //? check if the item is not delete button
+  const eventTargetParent = e.target.parentElement;
+
+  if (!eventTargetParent.classList.contains("remove-item")) {
+    e.target.classList.add("item-edit");
+
+    //? change the form button
+    formBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Update Item';
+    formBtn.style.backgroundColor = "green";
+
+    //? change the input value
+    itemInput.value = e.target.textContent;
+  }
 }
 
 //! Startup functions
